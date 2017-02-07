@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/contact/showkid</path>
+    <page_callback>CRM_Kidbanking_Form_ShowKid</page_callback>
+    <title>ShowKid</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>

@@ -60,6 +60,52 @@ function kidbanking_generate_checksum_digit($number) {
 }
 
 /**
+ * Implementation of hook_civicrm_navigationMenu
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ */
+function kidbanking_civicrm_navigationMenu(&$menu) {
+  _kidbanking_insert_navigation_menu($menu, "Contributions", array(
+    'label' => ts('Show Kid'),
+    'name' => 'showkid',
+    'url' => 'civicrm/contact/showkid',
+    'permission' => 'access CiviContribute',
+    'operator' => 'AND',
+    'separator' => 0,
+  ));
+  _kidbanking_civix_navigationMenu($menu);
+}
+
+function _kidbanking_insert_navigation_menu(&$menu, $path, $item) {
+  // If we are done going down the path, insert menu
+  if (empty($path)) {
+    $menu[] = array(
+      'attributes' => array_merge(array(
+        'label'      => CRM_Utils_Array::value('name', $item),
+        'active'     => 1,
+      ), $item),
+    );
+    return TRUE;
+  }
+  else {
+    // Find an recurse into the next level down
+    $found = FALSE;
+    $path = explode('/', $path);
+    $first = array_shift($path);
+    foreach ($menu as $key => &$entry) {
+      if ($entry['attributes']['name'] == $first) {
+        if (!$entry['child']) {
+          $entry['child'] = array();
+        }
+        $newPath = implode('/', $path);
+        $found = _kidbanking_insert_navigation_menu($entry['child'], $newPath, $item, $key);
+      }
+    }
+    return $found;
+  }
+}
+
+/**
  * Implements hook_civicrm_config().
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_config
