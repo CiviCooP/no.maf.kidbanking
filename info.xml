@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <extension key="no.maf.kidbanking" type="module">
   <file>kidbanking</file>
-  <name>KID number generator</name>
+  <name>KID number generator &amp; CiviBanking Matcher</name>
   <description>This extension generates KID numbers the information in the KID is specific for the MAF Norge. See https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_and_AvtaleGiro_background for more information.</description>
   <license>AGPL-3.0</license>
   <maintainer>
