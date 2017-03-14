@@ -31,7 +31,7 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
     }
 
     // then, find the correct plugin type
-    $matcher_plugin_class = civicrm_api3('OptionValue', 'getsingle', array('version' => 3, 'name' => 'matcher', 'group_id' => 'civicrm_banking.plugin_class'));
+    $matcher_plugin_class = civicrm_api3('OptionValue', 'getsingle', array('version' => 3, 'name' => 'match', 'group_id' => 'civicrm_banking.plugin_class'));
 
     // Plugin type and plugin class are switched around
     // see issue #29 (https://github.com/Project60/org.project60.banking/issues/29).
@@ -44,7 +44,7 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
 
   public function uninstall() {
     try {
-      $matcher_plugin_class = civicrm_api3('OptionValue', 'getsingle', array('version' => 3, 'name' => 'matcher', 'group_id' => 'civicrm_banking.plugin_class'));
+      $matcher_plugin_class = civicrm_api3('OptionValue', 'getsingle', array('version' => 3, 'name' => 'match', 'group_id' => 'civicrm_banking.plugin_class'));
       $kid_matcher_id = civicrm_api3('OptionValue', 'getvalue', array(
         'return' => "id",
         'option_group_id' => "civicrm_banking.plugin_types",
