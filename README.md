@@ -32,6 +32,31 @@ The _Kid.Generate_ returns an array containing a key _kid_number_ which holds th
 
     $return = civicrm_api3('Kid', 'Generate', array('contact_id' => 34341, 'campaign_id' => 23);
     $kid_number = $return['kid_number']; // Which is 0034341000023
+    
+## KID Matcher
+
+The KID matcher looks for pending contributions based on the KID number (which holds the contribution_id, see above). 
+When a pending contribution is found the contribution status is updated to completed.
+
+The matcher will also check for the following criteria and if not matched it will lower the probability of the matching:
+
+* Whether the contribution belongs to the same contact as the contact_id in the KID number
+* Whether the contribution has the same amount as the amount specified in the transaction
+* Whether the contribution has the status Pending
+* Whether the contribution is on the same date as the date in the transaction file
+* Whether the contribution is linked to the same campaign as the campaign id in the transaction
+* Whether the campaign and the contact could be found based on the kid number
+
+### How to set automatic matching and update?
+
+Update in the database the config of the plugin instance set the config to
+
+    {
+    	"auto_exec": true,
+        "threshold": 1.0
+    }
+
+The value of 1.0 is the threshold for the matching percentage (1.0 means 100% sure that the contribution is found).
 
 ## Unit tests
 

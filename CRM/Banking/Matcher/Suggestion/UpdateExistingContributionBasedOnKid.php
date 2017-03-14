@@ -101,13 +101,21 @@ class CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid {
       $penalty += 0.4;
       $evidence[] = '<strong>Contribution does not have the status pending</strong>';
     }
+    if ($contribution['contact_id'] != $contact_id) {
+      $penalty += 0.4;
+      $evidence[] = '<strong>Contribution belongs to a different contact (contact id: '.$contribution['contact_id'].'). The contact id in the KID number is '.$contact_id.'</strong>';
+    }
+    if ($contribution['campaign_id'] != $campaign_id) {
+      $penalty += 0.2;
+      $evidence[] = '<strong>Contribution belongs to a different campaign (campaign id: '.$contribution['campaign_id'].'). The campaign id in the KID number is '.$campaign_id.'</strong>';
+    }
 
     $bookDate = new DateTime($btx->booking_date);
     $contributionDate = new DateTime($contribution['receive_date']);
     $bookDateFormatted = $bookDate->format('Ymd');
     $contributionDateFormatted = $contributionDate->format('Ymd');
     if ($bookDateFormatted != $contributionDateFormatted) {
-      $penalty += 0.2;
+      $penalty += 0.1;
       $evidence[] = '<strong>Contribution date ('.$contributionDate->format('d-m-Y').') does not match transaction date ('.$bookDate->format('d-m-Y').')</strong><br>Selecting this action will set the contribution date to the transaction date.';
     }
 
@@ -125,8 +133,16 @@ class CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid {
   }
 
 
-
-  public static function execute(CRM_Banking_Matcher_Suggestion $match, CRM_Banking_BAO_BankTransaction $btx) {
+  /**
+   * Execute the matching action. In the match function we found an existing contribution.
+   * Now we are updating the status of this contribution to complete.
+   *
+   * @param \CRM_Banking_Matcher_Suggestion $match
+   * @param \CRM_Banking_BAO_BankTransaction $btx
+   * @param \CRM_Banking_PluginModel_Matcher $plugin
+   * @return bool|void
+   */
+  public static function execute(CRM_Banking_Matcher_Suggestion $match, CRM_Banking_BAO_BankTransaction $btx, CRM_Banking_PluginModel_Matcher $plugin) {
     // only execute if not completed yet
     if (banking_helper_tx_status_closed($btx->status_id)) {
       return;
@@ -151,6 +167,9 @@ class CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid {
       CRM_Core_Session::setStatus(ts("Couldn't modify contribution.") . "<br/>" . $result['error_message'], ts('Error'), 'error');
       return;
     }
+
+    // save the account
+    $plugin->storeAccountWithContact($btx, $match->getParameter('contact_id'));
 
     $newStatus = banking_helper_optionvalueid_by_groupname_and_name('civicrm_banking.bank_tx_status', 'Processed');
     $btx->setStatus($newStatus);

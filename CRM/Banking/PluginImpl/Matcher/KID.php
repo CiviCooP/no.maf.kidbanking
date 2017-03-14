@@ -30,9 +30,50 @@ class CRM_Banking_PluginImpl_Matcher_KID extends CRM_Banking_PluginModel_Matcher
     $suggestion_name = $match->getParameter('suggestion_name');
     switch ($suggestion_name) {
       case CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid::SUGGESTION_NAME:
-        CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid::execute($match, $btx);
+        CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid::execute($match, $btx, $this);
         break;
     }
+    return true;
+  }
+
+  /**
+   * Try to find a bank account if not found create a new bank account.
+   *
+   * @param CRM_Banking_BAO_BankTransaction $btx
+   * @param int $contact_id
+   * @return void
+   */
+  function storeAccountWithContact($btx, $contact_id) {
+    $data = $btx->getDataParsed();
+    if (empty($data['debitAccount'])) {
+      return;
+    }
+    $bank_account = $data['debitAccount'];
+    try {
+      $ba_id = civicrm_api3('BankingAccountReference', 'getvalue', array('return' => 'ba_id', 'reference' => $bank_account));
+      $id = civicrm_api3('BankingAccount', 'getvalue', array('return' => 'id', 'id' => $ba_id, 'contact_id' => $contact_id));
+      // Found the bank account for this contact.
+      return;
+    } catch (Exception $e) {
+      // Do nothing
+    }
+
+    $ba_params['contact_id'] = $contact_id; // Default Organisation
+    $ba_params['data_parsed'] = json_encode(array(
+      'name' => $bank_account
+    ));
+    $ba_params['data_raw'] = $bank_account;
+    $ba_params['description'] = $bank_account;
+    $result = civicrm_api3('BankingAccount', 'create', $ba_params);
+
+    $ba_ref_params['ba_id'] = $result['id'];
+    $ba_ref_params['reference'] = $bank_account;
+    $ba_ref_params['reference_type_id'] = civicrm_api3('OptionValue', 'getvalue', array(
+      'return' => 'id',
+      'name' => 'ocr',
+      'option_group_id' => 'civicrm_banking.reference_types'
+    ));
+    civicrm_api3('BankingAccountReference', 'create', $ba_ref_params);
   }
 
 }
