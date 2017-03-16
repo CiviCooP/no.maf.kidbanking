@@ -29,16 +29,14 @@ class CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid {
     }
 
     $kid = $data['kid'];
-
-    // Check whether the KID has a valid length.
-    // A length of 22 indicates that contact_id, campaign_id and contribution id are included.
-    if (strlen($kid) != 22) {
+    try {
+      $kidData = civicrm_api3('kid', 'parse', array('kid' => $kid));
+      $contact_id = $kidData['contact_id'];
+      $campaign_id = $kidData['campaign_id'];
+      $contribution_id = $kidData['contribution_id'];
+    } catch (Exception $e) {
       return false;
     }
-
-    $contact_id = (int) substr($kid, 0, 7);
-    $campaign_id = (int) substr($kid, 7, 6);
-    $contribution_id = (int) substr($kid, 13, 8);
 
     // When contact_id is missing or campaign_id is missing then we are not able to match
     // those transactions.
@@ -70,7 +68,8 @@ class CRM_Banking_Matcher_Suggestion_UpdateExistingContributionBasedOnKid {
     // Try to find the related contact
     try {
       $contact = civicrm_api3('Contact', 'getsingle', array('id' => $contact_id));
-      $evidence[] = 'KID belongs to contact: '.$contact['display_name'].' ('.$contact_id.')';
+      $contactViewUrl = CRM_Utils_System::url('civicrm/contact/view', 'reset=1&cid='.$contact_id);
+      $evidence[] = 'KID belongs to contact: <a href="'.$contactViewUrl.'">'.$contact['display_name'].' ('.$contact_id.')</a>';
       $suggestion->setParameter('contact_id', $contact_id);
     } catch (Exception $e) {
       $penalty += 0.5;

@@ -14,6 +14,7 @@ function _civicrm_api3_kid_Generate_spec(&$spec) {
   $spec['campaign_id']['api.required'] = 1;
   $spec['campaign_id']['type'] = 'Integer';
   $spec['contribution_id']['type'] = 'Integer';
+  $spec['contribution_id']['api.required'] = 0;
 }
 
 /**

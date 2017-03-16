@@ -65,9 +65,17 @@ This extension provides the following tests
 * _api_v3_Kid_GenerateTest_ will test whether _Kid.Generate_ api is working as expected.
     `phpunit4 tests/phpunit/api/v3/Kid/GenerateTest.php`
 
+## ToDo
+
+The following things are not (yet) implemented:
+
+* The kid.parse api should also lookup kid numbers on the dev.systopia.identitytracker extension. This in case a contact has been merged and the old contact_id is present in the kid number.
+
 ## See also
 
 * Explenation of the Modules 10 algorithm: https://en.wikipedia.org/wiki/Luhn_algorithm
+* no.maf.ocrimporter (https://github.com/civicoop/no.maf.ocrimporter)
+* no.maf.avtalebanking (https://github.com/civicoop/no.maf.avtalebanking)
 
 
 
