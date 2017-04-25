@@ -62,6 +62,34 @@ function kidbanking_store_kid($kid, $contact_id) {
 }
 
 /**
+ * Removes the KID number in the identitytracker extension. This is for
+ * historical reference purposes. So that the user can see which KID a donor possibly still can use.
+ * We delete a KID after it has been used in the Avtale collecting of money because at that time we know
+ * the donor would probably never use this KID again.
+ *
+ * @param $kid
+ */
+function kidbanking_remove_kid_from_contact_identity($kid) {
+  $contact_actions = civicrm_api3('Contact', 'getactions', array());
+  if (in_array('findbyidentity', $contact_actions['values'])) {
+    $result = civicrm_api3('Contact', 'findbyidentity', array(
+      'identifier_type' => 'KID',
+      'identifier' => $kid,
+    ));
+    if ($result['count'] == 1) {
+      $group_table  = CRM_Identitytracker_Configuration::GROUP_TABLE;
+      $type_column  = CRM_Identitytracker_Configuration::TYPE_FIELD_COLUMN;
+      $id_column    = CRM_Identitytracker_Configuration::ID_FIELD_COLUMN;
+      $deleteSql = "DELETE FROM `$group_table` WHERE `entity_id` = %1 AND `{$type_column}` = %2 AND `{$id_column}` = %3;";
+      $deleteParams[1] = array($result['id'], 'Integer');
+      $deleteParams[2] = array('KID', 'String');
+      $deleteParams[3] = array($kid, 'String');
+      CRM_Core_DAO::executeQuery($deleteSql, $deleteParams);
+    }
+  }
+}
+
+/**
  * Looks up the contact_id in the identitytracker table with the kid number.
  *
  * @param $kid

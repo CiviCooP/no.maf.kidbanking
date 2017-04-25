@@ -72,6 +72,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDWithContributionId extends CRM_Banking_P
       $suggestion->setParameter('contribution_id', $contribution_id);
       $suggestion->setParameter('contact_id', $contribution['contact_id']);
       $suggestion->setParameter('update_contribution_status', $this->_plugin_config->update_contribution_status);
+      $suggestion->setParameter('kid', $kid);
       $suggestion->setTitle(ts('Found contribution with KID as contribution ID'));
 
       if ($btx->amount != $contribution['total_amount']) {
@@ -153,6 +154,9 @@ class CRM_Banking_PluginImpl_Matcher_KIDWithContributionId extends CRM_Banking_P
       CRM_Core_Session::setStatus(ts("Couldn't modify contribution.") . "<br/>" . $result['error_message'], ts('Error'), 'error');
       return;
     }
+
+    // Remove the KID from the contact identity history
+    kidbanking_remove_kid_from_contact_identity($suggestion->getParameter('kid'));
 
     // save the account
     $this->storeAccountWithContact($btx, $suggestion->getParameter('contact_id'));
