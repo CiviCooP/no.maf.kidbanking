@@ -6,21 +6,17 @@
 class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
 
   public function install() {
-    $this->addMatcher('kid_matcher', 'KID Matcher', 'CRM_Banking_PluginImpl_Matcher_KID');
+    $this->addMatcher('kid_with_contribution_id', 'Find contributions with KID as contribution_id', 'CRM_Banking_PluginImpl_Matcher_KIDWithContributionId');
+    $this->addMatcher('kid_pending_contribution', 'Find pending contributions with KID', 'CRM_Banking_PluginImpl_Matcher_KIDPendingContribution');
+    $this->addMatcher('kid_create_contribution', 'Create contribution based on KID', 'CRM_Banking_PluginImpl_Matcher_KIDCreateContribution');
     $this->addMatcher('ocr_standingorder', 'Standing Order Matcher', 'CRM_Banking_PluginImpl_Matcher_StandingOrder');
-
-    // Add the OCR bank account type
-    civicrm_api3('OptionValue', 'create', array(
-      'option_group_id' => 'civicrm_banking.reference_types',
-      'name' => 'kid',
-      'label' => 'KID Number',
-      'value' => 'kid',
-    ));
   }
 
   public function uninstall() {
-    $this->removeMatcher('kid_matcher');
-    $this->removeMatcher('ocr_standing_order');
+    $this->removeMatcher('ocr_standingorder');
+    $this->removeMatcher('kid_create_contribution');
+    $this->removeMatcher('kid_pending_contribution');
+    $this->removeMatcher('kid_with_contribution_id');
   }
 
   private function addMatcher($name, $label, $class) {
@@ -50,7 +46,7 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
     // see issue #29 (https://github.com/Project60/org.project60.banking/issues/29).
     $params['plugin_type_id'] = $matcher_plugin_class['id'];
     $params['plugin_class_id'] = $matcher_id;
-    $params['name'] = 'KID Matcher';
+    $params['name'] = $name;
     $params['enabled'] = 1;
     civicrm_api3('BankingPluginInstance', 'create', $params);
   }
@@ -66,14 +62,13 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
 
       // Plugin type and plugin class are switched around
       // see issue #29 (https://github.com/Project60/org.project60.banking/issues/29).
-      $params['plugin_type_id'] = $matcher_plugin_class['id'];
-      $params['plugin_class_id'] = $matcher_id;
-      $importerPluginInstances = civicrm_api3('BankingPluginInstance', 'get', $params);
-      foreach($importerPluginInstances['values'] as $importerPluginInstance) {
-        civicrm_api3('BankingPluginInstance', 'delete', array('id' => $importerPluginInstance['id']));
-      }
+      $params[1] = array($matcher_plugin_class['id'], 'Integer');
+      $params[2] = array($matcher_id, 'Integer');
+      CRM_Core_DAO::executeQuery("DELETE FROM `civicrm_bank_plugin_instance` WHERE `plugin_type_id` = %1 AND `plugin_class_id` = %2", $params);
 
       civicrm_api3('OptionValue', 'delete', array('id' => $matcher_id));
+
+      CRM_Core_Session::setStatus(ts('Deleted %1 matcher', array(1=>$name)), '', 'Success');
     } catch (Exception $e) {
       // Do nothing
     }
