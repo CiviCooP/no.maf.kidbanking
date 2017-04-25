@@ -11,18 +11,26 @@ The KID should consist of:
 
 See https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_and_AvtaleGiro_background for more information.
 
+## Provided matchers for CiviBanking
+
+* **Find pending contribution with KID as contribution_id** This matcher will try to lookup a pending contribution based on the contribution_id given in the KID. If one is found and amount, currency, campaign and date are matched the transaction will process automatically. The contribution status is updated to completed.
+* **Find any pending contribution** This matcher will lookup all pending contributions for a contact. The contact is derived from the KID. The contribution status is updated to completed.
+* **Create a contribution** Create a new contribution for a contact. The contact is derived from the KID.
+
+
 ## API: Kid.Generate
 
 This extension implements an API for generating a KID (_Kid.Generate_).
 The API will not check whether the contact exists or whether the campaign or contribution exists.
+After generation the KID will be stored in the _identitytracker extension_.
 
 **Parameters**
 
-| Parameter   	    | Type   	| Required  	|
-|-------------------|-----------|---------------|
-| contact_id        | integer   | Required      |
-| campaign_id       | integer   | Required      |
-| contribution_id   | integer   | not required  |
+| Parameter   	        | Type   	| Required  	|
+|-----------------------|-----------|---------------|
+| contact_id            | integer   | Required      |
+| campaign_id           | integer   | Required      |
+| contribution_id       | integer   | not required  |
 
 **Return value**
 
@@ -32,6 +40,35 @@ The _Kid.Generate_ returns an array containing a key _kid_number_ which holds th
 
     $return = civicrm_api3('Kid', 'Generate', array('contact_id' => 34341, 'campaign_id' => 23);
     $kid_number = $return['kid_number']; // Which is 0034341000023
+
+## API: Kid.Parse
+
+This extension implements an API for parsing a KID (_Kid.Parse_).
+The api will translate the KID into a contact_id, a campaign_id and a contribution_recur_id 
+The contact_id is will be looked up through the _identitytracker extension_. 
+When an invalid KID number is given the api will return an error. 
+
+**Parameters**
+
+| Parameter             | Type      | Required       |
+|-----------------------|-----------|----------------|
+| kid                   | string    | Required       |
+
+**Return**
+
+| Parameter   	        | Type   	| Required  	 |
+|-----------------------|-----------|----------------|
+| contact_id            | integer   | Always present |
+| campaign_id           | integer   | Optional       |
+| contribution_id       | integer   | Optional       |
+
+**Example code**
+
+    $return = civicrm_api3('Kid', 'Parse', array('kid' => '0034341000023'));
+    // return values are:
+    // $return['contact_id'] = 34341;
+    // $return['campaign_id'] = 23;
+    // $return['contrubution_recur_id'] = false;
     
 ## KID Matcher
 
@@ -73,7 +110,7 @@ The following things are not (yet) implemented:
 
 ## See also
 
-* Explenation of the Modules 10 algorithm: https://en.wikipedia.org/wiki/Luhn_algorithm
+* Explanation of the Modules 10 algorithm: https://en.wikipedia.org/wiki/Luhn_algorithm
 * no.maf.ocrimporter (https://github.com/civicoop/no.maf.ocrimporter)
 * no.maf.avtalebanking (https://github.com/civicoop/no.maf.avtalebanking)
 

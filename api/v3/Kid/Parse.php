@@ -34,38 +34,24 @@ function _civicrm_api3_kid_Parse_spec(&$spec) {
  */
 function civicrm_api3_kid_Parse($params) {
   $kid = ltrim($params['kid']);
+  $contact_id = kidbanking_find_contact_id_by_kid($kid);
+  $campaign_id = false;
+  $contribution_id = false;
 
-  // Check whether the KID has a valid length.
-  // A length of 22 indicates that contact_id, campaign_id and contribution id are included.
-  if (strlen($kid) != 22 && strlen($kid) != 14) {
-    return civicrm_api3_create_error("Invalid KID number", $params);
+  // Check whether the KID has a valid length to hold the campaign_id
+  if (strlen($kid) == 22 || strlen($kid) == 14) {
+    $campaign_id = (int) substr($kid, 7, 6);
   }
 
-  $contact_id = (int) substr($kid, 0, 7);
-  $campaign_id = (int) substr($kid, 7, 6);
-  $contribution_id = false;
+  // Check whether the KID has a valid length to hold the contribution_id
   if (strlen($kid) == 22) {
     $contribution_id = (int) substr($kid, 13, 8);
   }
 
-  // When contact_id is missing or campaign_id is missing then we are not able to match
+  // When contact_id is missing is missing then we are not able to match
   // those transactions.
-  if (empty($contact_id) || empty($campaign_id)) {
+  if (empty($contact_id)) {
     return civicrm_api3_create_error("Invalid KID number", $params);
-  }
-
-  // Check if the de.systopia.identitytracker extension is installed.
-  // We do this by checking whether the api contact.findbyidentity exists.
-  $contact_actions = civicrm_api3('Contact', 'getactions', array());
-  if (in_array('findbyidentity', $contact_actions['values'])) {
-    $result = civicrm_api3('Contact', 'findbyidentity', array(
-      'identifier_type' => 'internal',
-      'identifier' => $contact_id,
-    ));
-    if ($result['count'] != 1) {
-      return civicrm_api3_create_error("Invalid KID number", $params);
-    }
-    $contact_id = $result['id'];
   }
 
   $entity['contact_id'] = $contact_id;

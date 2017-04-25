@@ -29,7 +29,69 @@ function kidbanking_generate_kidnumber($contact_id, $campaign_id, $contribution_
     $kidNumber = $kidNumber . str_pad($contribution_id, 8, '0', STR_PAD_LEFT);
   }
   $kidNumber = $kidNumber . kidbanking_generate_checksum_digit($kidNumber);
+
+  kidbanking_store_kid($kidNumber, $contact_id);
+
   return $kidNumber;
+}
+
+/**
+ * Stores the KID number in the identitytracker extension. This is for
+ * historical reference purposes. So that the user can see which KID a donor possibly still can use.
+ *
+ * @param $kid
+ * @param $contact_id
+ */
+function kidbanking_store_kid($kid, $contact_id) {
+  $contact_actions = civicrm_api3('Contact', 'getactions', array());
+  if (in_array('findbyidentity', $contact_actions['values'])) {
+    $result = civicrm_api3('Contact', 'findbyidentity', array(
+      'identifier_type' => 'KID',
+      'identifier' => $kid,
+    ));
+    if ($result['count'] == 1) {
+      return;
+    }
+  }
+  if (in_array('addidentity', $contact_actions['values'])) {
+    $params['contact_id'] = $contact_id;
+    $params['identifier'] = $kid;
+    $params['identifier_type'] = 'KID';
+    civicrm_api3('Contact', 'addidentity', $params);
+  }
+}
+
+/**
+ * Looks up the contact_id in the identitytracker table with the kid number.
+ *
+ * @param $kid
+ * @return false|int false when contact_id could not be found. Otherwise the contact_id
+ */
+function kidbanking_find_contact_id_by_kid($kid) {
+  $contact_actions = civicrm_api3('Contact', 'getactions', array());
+  if (in_array('findbyidentity', $contact_actions['values'])) {
+    $result = civicrm_api3('Contact', 'findbyidentity', array(
+      'identifier_type' => 'KID',
+      'identifier' => $kid,
+    ));
+    if ($result['count'] == 1) {
+      return $result['id'];
+    }
+  }
+
+  // Try to destruct the KID number into a contact_id part and lookup this contact_id
+  if (strlen($kid) == 22 || strlen($kid) == 14) {
+    $contact_id = (int) substr($kid, 0, 7);
+    $result = civicrm_api3('Contact', 'findbyidentity', array(
+      'identifier_type' => 'internal',
+      'identifier' => $contact_id,
+    ));
+    if ($result['count'] == 1) {
+      return $result['id'];
+    }
+    return $contact_id;
+  }
+  return false;
 }
 
 /**
