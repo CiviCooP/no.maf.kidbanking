@@ -4,26 +4,21 @@ class CRM_Banking_PluginImpl_Matcher_StandingOrder extends CRM_Banking_PluginMod
 
   public function match(CRM_Banking_BAO_BankTransaction $btx, CRM_Banking_Matcher_Context $context) {
     $data = $btx->getDataParsed();
-    if (empty($data['kid']) || empty($data['recordName']) || $data['recordName'] != 'StandingOrder') {
-      return array();
+    if (empty($data['kid']) || empty($data['recordName']) || $data['recordName'] != 'StandingOrder' || !isset($data['registrationType'])) {
+      return null;
     }
+    return null;
 
     $kid = $data['kid'];
+    $registrationType = $data['registrationType'];
     try {
       $kidData = civicrm_api3('kid', 'parse', array('kid' => $kid));
       $contact_id = $kidData['contact_id'];
       $campaign_id = $kidData['campaign_id'];
+      $contribution_id = $kidData['contribution_id'];
+      $contact = civicrm_api3('Contact', 'getsingle', array('is_deleted' => 0, 'id' => $contact_id));
     } catch (Exception $e) {
-      return array();
-    }
-
-    if (!isset($data['registrationType'])) {
-      return array();
-    }
-    $registrationType = $data['registrationType'];
-
-    if (empty($contact_id)) {
-      return array();
+      return NULL;
     }
 
     $suggestion = new CRM_Banking_Matcher_Suggestion($this, $btx);
