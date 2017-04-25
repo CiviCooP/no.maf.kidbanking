@@ -47,6 +47,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDWithContributionId extends CRM_Banking_P
       $contact_id = $kidData['contact_id'];
       $campaign_id = $kidData['campaign_id'];
       $contribution_id = $kidData['contribution_id'];
+      $contact = civicrm_api3('Contact', 'getsingle', array('is_deleted' => 0, 'id' => $contact_id));
     } catch (Exception $e) {
       return NULL;
     }
