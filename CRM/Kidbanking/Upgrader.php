@@ -14,7 +14,6 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
   }
 
   public function uninstall() {
-    $this->removeMatcher('ocr_standingorder');
     $this->removeMatcher('kid_startavtale_from_printedgiro');
     $this->removeMatcher('kid_stopavtale');
     $this->removeMatcher('kid_create_contribution');
