@@ -18,6 +18,8 @@ See https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_an
 * **Create a contribution** Create a new contribution for a contact. The contact is derived from the KID.
 
 * **Start avtale from printed giro** This matcher will lookup all active printed giro for a contact and gives the possibility to start an avtale from it
+* **Start avtale** This matcher will lookup all inactive avtales will activate the selected avtale
+* **Change notification from bank** This matcher will lookup active avtales and will update the notification from bank field on the selected avtale.
 * **Stop avtale** This matcher will lookup all active avtales and gives the possibility to stop the avtale
 
 ## API: Kid.Generate

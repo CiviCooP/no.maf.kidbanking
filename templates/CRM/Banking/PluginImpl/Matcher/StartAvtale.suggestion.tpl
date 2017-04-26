@@ -26,8 +26,8 @@
     <p>
         {capture assign=address_text}{if $contact.city}{$contact.street_address}, {$contact.city}{else}{ts}Address incomplete{/ts}{/if}{/capture}
         {capture assign=contact_link}<a title="{$address_text}" href="{crmURL p="civicrm/contact/view" q="reset=1&cid=$contact_id"}">{$contact.display_name} [{$contact.id}]</a>{/capture}
-        {ts 1=$contact_link}%1 maintains a matching printed giro.{/ts}
-        {ts}If you confirm this suggestion the existing printed giro will be ended and a new avtale giro will be created.{/ts}
+        {ts 1=$contact_link}%1 maintains a matching avtale.{/ts}
+        {ts}If you confirm this suggestion the existing avtale will be enabled and the field notification from bank will be updated.{/ts}
     </p>
 </div>
 
@@ -61,6 +61,19 @@
             </td>
             <td>
                 <div class="suggestion-value">{if ($campaign)}{$campaign}{/if}</div>
+            </td>
+        </tr><tr>
+            <td>
+                <div class="suggestion-header">{ts}Wants notification{/ts}</div>
+            </td>
+            <td>
+                <div class="suggestion-value">
+                    {if ($wants_notification)}
+                        {ts}Yes{/ts}
+                    {else}
+                        {ts}No{/ts}
+                    {/if}
+                </div>
             </td>
         </tr>
         </tbody>

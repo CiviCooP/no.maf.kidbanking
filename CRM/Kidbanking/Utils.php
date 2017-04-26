@@ -36,4 +36,41 @@ class CRM_Kidbanking_Utils {
     return self::$singleton;
   }
 
+  /**
+   * Check whether the mandate is enabled or not
+   *
+   * @param $mandate_id
+   * @return bool
+   */
+  public static function isMandateEnabled($mandate_id) {
+    $sql = 'SELECT is_enabled FROM civicrm_sdd_mandate WHERE id = %1';
+    $sqlParams = array(
+      1 => array($mandate_id, 'Integer'),
+    );
+    $is_enabled = CRM_Core_DAO::singleValueQuery($sql, $sqlParams);
+    return $is_enabled ? true : false;
+  }
+
+  /**
+   * Enable a mandate
+   *
+   * @param $mandate_id
+   */
+  public static function enableMandate($mandate_id) {
+    $sql = 'UPDATE civicrm_sdd_mandate SET is_enabled = 1 WHERE id = %1';
+    $sqlParams = array(
+      1 => array($mandate_id, 'Integer'),
+    );
+    CRM_Core_DAO::executeQuery($sql, $sqlParams);
+  }
+
+  public static function updateNotificationFromBank($contribution_recur_id, $wants_notification) {
+    $config = CRM_Kidbanking_Config::instance();
+    $wantsNotificationCustomField = $config->getAvtaleGiroCustomField('maf_notification_bank');
+    $wantsNotificationCustomFieldIdentifier = 'custom_'.$wantsNotificationCustomField['id'];
+    $contributionRecur['id'] = $contribution_recur_id;
+    $contributionRecur[$wantsNotificationCustomFieldIdentifier] = $wants_notification ? '1' : '0';
+    civicrm_api3('ContributionRecur', 'create', $contributionRecur);
+  }
+
 }

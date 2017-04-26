@@ -11,11 +11,15 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
     $this->addMatcher('kid_create_contribution', 'Create contribution based on KID', 'CRM_Banking_PluginImpl_Matcher_KIDCreateContribution');
     $this->addMatcher('kid_startavtale_from_printedgiro', 'Start Avtale from printed giro', 'CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro');
     $this->addMatcher('kid_stopavtale', 'Stop Avtale', 'CRM_Banking_PluginImpl_Matcher_StopAvtale');
+    $this->addMatcher('kid_startavtale', 'Start Avtale', 'CRM_Banking_PluginImpl_Matcher_StartAvtale');
+    $this->addMatcher('kid_changenotificationfrombank', 'Change notification from bank', 'CRM_Banking_PluginImpl_Matcher_ChangeNotificationFromBank');
   }
 
   public function uninstall() {
     $this->removeMatcher('kid_startavtale_from_printedgiro');
     $this->removeMatcher('kid_stopavtale');
+    $this->removeMatcher('kid_startavtale');
+    $this->removeMatcher('kid_changenotificationfrombank');
     $this->removeMatcher('kid_create_contribution');
     $this->removeMatcher('kid_pending_contribution');
     $this->removeMatcher('kid_with_contribution_id');

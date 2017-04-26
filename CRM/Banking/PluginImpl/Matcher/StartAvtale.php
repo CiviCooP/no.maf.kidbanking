@@ -1,6 +1,6 @@
 <?php
 
-class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_Matcher_KID {
+class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_Matcher_KID {
 
   /**
    * class constructor
@@ -42,8 +42,13 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
     } catch (Exception $e) {
       return NULL;
     }
-    if ($registrationType !== 2) {
+    if ($registrationType !== 0) {
       return NULL;
+    }
+
+    $wants_notification = 0;
+    if (!empty($data['wantsNotification']) && $data['wantsNotification'] == 'J') {
+      $wants_notification = 1;
     }
 
     $mandates = civicrm_api3('SepaMandate', 'get', array(
@@ -62,7 +67,7 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
       if ($mandate['entity_table'] != 'civicrm_contribution_recur') {
         continue;
       }
-      if (!CRM_Kidbanking_Utils::isMandateEnabled($mandate['id'])) {
+      if (CRM_Kidbanking_Utils::isMandateEnabled($mandate['id'])) {
         continue;
       }
 
@@ -70,12 +75,13 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
 
       $probability = 1.00;
       $suggestion = new CRM_Banking_Matcher_Suggestion($this, $btx);
-      $suggestion->setTitle(ts("End Avtale"));
+      $suggestion->setTitle(ts("Start Avtale"));
       $suggestion->setId('stopavtale-kid-'.$kid);
       $suggestion->setParameter('kid', $kid);
       $suggestion->setParameter('contact_id', $contact_id);
       $suggestion->setParameter('mandate_id', $mandate['id']);
       $suggestion->setParameter('contribution_recur_id', $contribution_recur['id']);
+      $suggestion->setParameter('wants_notification', $wants_notification);
       if ($contribution_recur['campaign_id'] != $campaign_id) {
         $suggestion->addEvidence($this->_plugin_config->campaign_penalty, ts("The campaign of the transaction differs from the campaign of the avtale"));
         $probability = $probability - $this->_plugin_config->campaign_penalty;
@@ -97,19 +103,13 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
   }
 
   public function execute($match, $btx) {
-    $cancel_reason = ts('Cancelled by donor through his/her bank');
     $mandate_id = $match->getParameter('mandate_id');
+    CRM_Kidbanking_Utils::enableMandate($mandate_id);
+
+    // Store notification from bank
     $contribution_recur_id = $match->getParameter('contribution_recur_id');
-    // There is a bug in sepa after ending a mandate the currency of the recurring contribution is set to EUR.
-    // We should keep the currency.
-    // So first retrieve the the currency of the recurring contribution and after cancelling set it again.
-    $contribution_recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $contribution_recur_id));
-    CRM_Sepa_BAO_SEPAMandate::terminateMandate($mandate_id, date("Y-m-d"), $cancel_reason);
-    // Now update the currency of the contribution recur
-    civicrm_api3('ContributionRecur', 'create', array(
-      'id' => $contribution_recur_id,
-      'currency'=> $contribution_recur['currency'],
-    ));
+    $wants_notification = $match->getParameter('wants_notification');
+    CRM_Kidbanking_Utils::updateNotificationFromBank($contribution_recur_id, $wants_notification);
 
     // save the account
     $this->storeAccountWithContact($btx, $match->getParameter('contact_id'));
@@ -142,6 +142,7 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
     $smarty_vars['contact'] = $contact;
     $smarty_vars['contribution_recur'] = $contribution_recur;
     $smarty_vars['mandate'] = $mandate;
+    $smarty_vars['wants_notification'] = $suggestion->getParameter('wants_notification');
 
     if ($contribution_recur['campaign_id']) {
       $smarty_vars['campaign'] = civicrm_api3('Campaign', 'getvalue', array('return' => 'title', 'id' => $contribution_recur['campaign_id']));
@@ -150,7 +151,7 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
 
     $smarty = CRM_Banking_Helpers_Smarty::singleton();
     $smarty->pushScope($smarty_vars);
-    $html_snippet = $smarty->fetch('CRM/Banking/PluginImpl/Matcher/StopAvtale.suggestion.tpl');
+    $html_snippet = $smarty->fetch('CRM/Banking/PluginImpl/Matcher/StartAvtale.suggestion.tpl');
     $smarty->popScope();
     return $html_snippet;
   }
@@ -182,7 +183,7 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
 
     $smarty = CRM_Banking_Helpers_Smarty::singleton();
     $smarty->pushScope($smarty_vars);
-    $html_snippet = $smarty->fetch('CRM/Banking/PluginImpl/Matcher/StopAvtale.execution.tpl');
+    $html_snippet = $smarty->fetch('CRM/Banking/PluginImpl/Matcher/StartAvtale.execution.tpl');
     $smarty->popScope();
     return $html_snippet;
   }
