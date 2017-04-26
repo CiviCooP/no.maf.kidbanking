@@ -105,6 +105,9 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
     // So first retrieve the the currency of the recurring contribution and after cancelling set it again.
     $contribution_recur = civicrm_api3('ContributionRecur', 'getsingle', array('id' => $contribution_recur_id));
     CRM_Sepa_BAO_SEPAMandate::terminateMandate($mandate_id, date("Y-m-d"), $cancel_reason);
+    // Also disable the mandate
+    CRM_Kidbanking_Utils::disableMandate($mandate_id);
+
     // Now update the currency of the contribution recur
     civicrm_api3('ContributionRecur', 'create', array(
       'id' => $contribution_recur_id,

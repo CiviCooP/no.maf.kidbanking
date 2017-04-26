@@ -119,6 +119,9 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
     $match->setParameter('mandate_id', $result['id']);
     $mandate = civicrm_api3('SepaMandate', 'getsingle', array('id' => $result['id']));
 
+    //Also enable the mandate
+    CRM_Kidbanking_Utils::enableMandate($result['id']);
+
     if ($mandate['entity_table'] == 'civicrm_contribution_recur') {
       // Store notification from bank
       $contribution_recur_id = $mandate['entity_id'];

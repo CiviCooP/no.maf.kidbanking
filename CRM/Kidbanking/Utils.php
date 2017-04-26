@@ -64,6 +64,19 @@ class CRM_Kidbanking_Utils {
     CRM_Core_DAO::executeQuery($sql, $sqlParams);
   }
 
+  /**
+   * Disable a mandate
+   *
+   * @param $mandate_id
+   */
+  public static function disableMandate($mandate_id) {
+    $sql = 'UPDATE civicrm_sdd_mandate SET is_enabled = 0 WHERE id = %1';
+    $sqlParams = array(
+      1 => array($mandate_id, 'Integer'),
+    );
+    CRM_Core_DAO::executeQuery($sql, $sqlParams);
+  }
+
   public static function updateNotificationFromBank($contribution_recur_id, $wants_notification) {
     $config = CRM_Kidbanking_Config::instance();
     $wantsNotificationCustomField = $config->getAvtaleGiroCustomField('maf_notification_bank');
