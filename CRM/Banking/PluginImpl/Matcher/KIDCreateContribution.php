@@ -82,7 +82,9 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
   public function execute($suggestion, $btx) {
     $contact_id = $suggestion->getParameter('contact_id');
 
-    if (empty($suggestion->getParameter('financial_type_id')) || empty($suggestion->getParemter('payment_instrument_id'))) {
+    $financial_type_id = $suggestion->getParameter('financial_type_id');
+    $payment_instrument_id = $suggestion->getParemter('payment_instrument_id');
+    if (empty($financial_type_id) || empty($payment_instrument_id)) {
       CRM_Core_Session::setStatus(ts('Financial type and payment instrument are required fields'), ts('Error', 'error'));
       return;
     }
@@ -94,8 +96,8 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     $params['receive_date'] = $suggestion->getParameter('date');
     $params['total_amount'] = $suggestion->getParameter('amount');
     $params['currency'] = $suggestion->getParameter('currency');
-    $params['financial_type_id'] = $suggestion->getParameter('financial_type_id');
-    $params['payment_instrument_id'] = $suggestion->getParameter('payment_instrument_id');
+    $params['financial_type_id'] = $financial_type_id;
+    $params['payment_instrument_id'] = $payment_instrument_id;
     if ($suggestion->getParameter('campaign_id')) {
       $params['campaign_id'] = $suggestion->getParameter('campaign_id');
     }
