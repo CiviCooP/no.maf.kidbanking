@@ -48,13 +48,13 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
     if ($campaign_id) {
       // Find all active printed giro's with the same campaign_id
       $sql = "
-        SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_campaign = %2 AND maf_partners_type = 1
-        UNION SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_campaign != %2 AND maf_partners_type = 1
+        SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_campaign = %2
+        UNION SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_campaign != %2
       ";
       $sqlParams[1] = array($contact_id, 'Integer');
       $sqlParams[2] = array($campaign_id, 'Integer');
     } else {
-      $sql = "SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_type = 1";
+      $sql = "SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1";
       $sqlParams[1] = array($contact_id, 'Integer');
     }
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
