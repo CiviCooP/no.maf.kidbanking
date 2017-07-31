@@ -59,7 +59,7 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_
         'limit' => 0,
       ),
     ));
-var_dump($contact_id); exit();
+
     $status_to_skip = array('COMPLETE', 'ONHOLD', 'PARTIAL', 'INVALID');
     foreach($mandates['values'] as $mandate) {
       if (in_array($mandate['status'], $status_to_skip)) {
