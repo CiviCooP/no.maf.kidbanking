@@ -23,6 +23,7 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_
 
   public function match(CRM_Banking_BAO_BankTransaction $btx, CRM_Banking_Matcher_Context $context) {
     $threshold = $this->getThreshold();
+
     $data = $btx->getDataParsed();
     if (empty($data['kid']) || empty($data['recordName']) || $data['recordName'] != 'StandingOrder' || !isset($data['registrationType'])) {
       return NULL;
@@ -42,7 +43,7 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_
     } catch (Exception $e) {
       return NULL;
     }
-    if ($registrationType !== 0) {
+    if ($registrationType !== 1) {
       return NULL;
     }
 
@@ -58,7 +59,7 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_
         'limit' => 0,
       ),
     ));
-
+var_dump($contact_id); exit();
     $status_to_skip = array('COMPLETE', 'ONHOLD', 'PARTIAL', 'INVALID');
     foreach($mandates['values'] as $mandate) {
       if (in_array($mandate['status'], $status_to_skip)) {

@@ -42,7 +42,7 @@ class CRM_Banking_PluginImpl_Matcher_ChangeNotificationFromBank extends CRM_Bank
     } catch (Exception $e) {
       return NULL;
     }
-    if ($registrationType !== 1) {
+    if ($registrationType !== 0) {
       return NULL;
     }
 

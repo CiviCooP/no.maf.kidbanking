@@ -35,7 +35,7 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
     } catch (Exception $e) {
       return NULL;
     }
-    if ($registrationType !== 0) {
+    if ($registrationType !== 1) {
       return NULL;
     }
 

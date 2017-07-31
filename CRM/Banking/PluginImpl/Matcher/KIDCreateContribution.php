@@ -83,7 +83,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     $contact_id = $suggestion->getParameter('contact_id');
 
     $financial_type_id = $suggestion->getParameter('financial_type_id');
-    $payment_instrument_id = $suggestion->getParemter('payment_instrument_id');
+    $payment_instrument_id = $suggestion->getParameter('payment_instrument_id');
     if (empty($financial_type_id) || empty($payment_instrument_id)) {
       CRM_Core_Session::setStatus(ts('Financial type and payment instrument are required fields'), ts('Error', 'error'));
       return;
