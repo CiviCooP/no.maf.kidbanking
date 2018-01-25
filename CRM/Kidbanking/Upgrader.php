@@ -16,13 +16,13 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
   }
 
   public function uninstall() {
-    $this->removeMatcher('kid_startavtale_from_printedgiro');
-    $this->removeMatcher('kid_stopavtale');
-    $this->removeMatcher('kid_startavtale');
-    $this->removeMatcher('kid_changenotificationfrombank');
-    $this->removeMatcher('kid_create_contribution');
-    $this->removeMatcher('kid_pending_contribution');
-    $this->removeMatcher('kid_with_contribution_id');
+    $this->removeMatcher('matcher_kid_startavtale_from_printedgiro');
+    $this->removeMatcher('matcher_kid_stopavtale');
+    $this->removeMatcher('matcher_kid_startavtale');
+    $this->removeMatcher('matcher_kid_changenotificationfrombank');
+    $this->removeMatcher('matcher_kid_create_contribution');
+    $this->removeMatcher('matcher_kid_pending_contribution');
+    $this->removeMatcher('matcher_kid_with_contribution_id');
   }
 
   private function addMatcher($name, $label, $class) {
