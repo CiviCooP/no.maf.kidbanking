@@ -16,6 +16,12 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     if (!isset($config->default_penalty)) {
       $config->default_penalty = 0.9;
     }
+		if (!isset($config->default_financial_type_id)) {
+      $config->default_financial_type_id = 0;
+    }
+		if (!isset($config->default_payment_instrument_id)) {
+      $config->default_payment_instrument_id = 0;
+    }
     if (!isset($config->create_contribution_status)) {
       $config->create_contribution_status = 'Completed';
     }
@@ -59,8 +65,8 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     $suggestion->setTitle('Create new contribution');
     $suggestion->setParameter('contact_id', $contact_id);
     $suggestion->setParameter('campaign_id', $campaign_id);
-    $suggestion->setParameter('financial_type_id', 0);
-    $suggestion->setParameter('payment_instrument_id', 0);
+    $suggestion->setParameter('financial_type_id', $this->_plugin_config->default_financial_type_id);
+    $suggestion->setParameter('payment_instrument_id', $this->_plugin_config->default_payment_instrument_id);
 
     $date = new DateTime($btx->value_date);
     $suggestion->setParameter('date', $date->format('Ymd His'));
