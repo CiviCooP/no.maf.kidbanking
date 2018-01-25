@@ -52,7 +52,7 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
     // see issue #29 (https://github.com/Project60/org.project60.banking/issues/29).
     $params['plugin_type_id'] = $matcher_plugin_class['id'];
     $params['plugin_class_id'] = $matcher_id;
-    $params['name'] = $name;
+    $params['name'] = $label;
     $params['enabled'] = 1;
     civicrm_api3('BankingPluginInstance', 'create', $params);
   }
