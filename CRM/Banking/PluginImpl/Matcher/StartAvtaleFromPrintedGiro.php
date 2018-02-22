@@ -48,13 +48,13 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
     if ($campaign_id) {
       // Find all active printed giro's with the same campaign_id
       $sql = "
-        SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_campaign = %2
-        UNION SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1 AND maf_partners_campaign != %2
+        SELECT * FROM `civicrm_value_printed_giro` WHERE (maf_printed_giro_end_date IS NULL OR maf_printed_giro_end_date >= NOW()) AND entity_id = %1 AND maf_printed_giro_campaign = %2
+        UNION SELECT * FROM `civicrm_value_printed_giro` WHERE (maf_printed_giro_end_date IS NULL OR maf_printed_giro_end_date >= NOW()) AND entity_id = %1 AND maf_printed_giro_campaign != %2
       ";
       $sqlParams[1] = array($contact_id, 'Integer');
       $sqlParams[2] = array($campaign_id, 'Integer');
     } else {
-      $sql = "SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE (maf_partners_end_date IS NULL OR maf_partners_end_date >= NOW()) AND entity_id = %1";
+      $sql = "SELECT * FROM `civicrm_value_printed_giro` WHERE (maf_printed_giro_end_date IS NULL OR maf_printed_giro_end_date >= NOW()) AND entity_id = %1";
       $sqlParams[1] = array($contact_id, 'Integer');
     }
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
@@ -65,12 +65,12 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
       $suggestion->setId('standingorder-kid-'.$kid);
       $suggestion->setParameter('kid', $kid);
       $suggestion->setParameter('contact_id', $contact_id);
-      $suggestion->setParameter('civicrm_value_maf_partners_non_avtale_id', $dao->id);
+      $suggestion->setParameter('civicrm_value_printed_giro_id', $dao->id);
       $suggestion->setParameter('wants_notification', $wants_notification);
       if ($campaign_id) {
         $suggestion->setParameter('campaign_id', $campaign_id);
       }
-      if ($dao->maf_partners_campaign != $campaign_id) {
+      if ($dao->maf_printed_giro_campaign != $campaign_id) {
         $suggestion->addEvidence($this->_plugin_config->campaign_penalty, ts("The campaign of the transaction differs from the campaign of the printed giro"));
         $probability = $probability - $this->_plugin_config->campaign_penalty;
       }
@@ -86,10 +86,10 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
   }
 
   public function execute($match, $btx) {
-    $id = $match->getParameter('civicrm_value_maf_partners_non_avtale_id');
+    $id = $match->getParameter('civicrm_value_printed_giro_id');
     $contact_id = $match->getParameter('contact_id');
 
-    $sql = "SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE id = %1";
+    $sql = "SELECT * FROM `civicrm_value_printed_giro` WHERE id = %1";
     $sqlParams[1] = array($id, 'Integer');
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     $dao->fetch();
@@ -98,10 +98,10 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
     $params['currency'] = 'NOK';
     $params['contact_id'] = $contact_id;
     $params['type'] = 'RCUR';
-    $params['amount'] = $dao->maf_partners_amount;
-    $params['frequency_interval'] = $dao->maf_partners_frequency;
-    if ($dao->maf_partners_campaign) {
-      $params['campaign_id'] = $dao->maf_partners_campaign;
+    $params['amount'] = $dao->maf_printed_giro_amount;
+    $params['frequency_interval'] = $dao->maf_printed_giro_frequency;
+    if ($dao->maf_printed_giro_campaign) {
+      $params['campaign_id'] = $dao->maf_printed_giro_campaign;
     }
     $result = civicrm_api('SepaMandate', 'createfull', $params);
     if (isset($result['is_error']) && $result['is_error']) {
@@ -112,7 +112,7 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
     if (empty($result['is_error'])) {
       $updateParams = array();
       $updateParams[1] = array($id, 'Integer');
-      $updateSql = "UPDATE `civicrm_value_maf_partners_non_avtale` SET `maf_partners_end_date` = CURRENT_DATE() WHERE `id` = %1";
+      $updateSql = "UPDATE `civicrm_value_printed_giro` SET `maf_printed_giro_end_date` = CURRENT_DATE() WHERE `id` = %1";
       CRM_Core_DAO::executeQuery($updateSql, $updateParams);
     }
 
@@ -147,26 +147,26 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro extends CRM_Bank
    * @return html code snippet
    */
   function visualize_match( CRM_Banking_Matcher_Suggestion $suggestion, $btx) {
-    $frequencies = CRM_Core_OptionGroup::values('maf_partners_frequency');
+    $frequencies = CRM_Core_OptionGroup::values('maf_printed_giro_frequency');
     $smarty_vars = array();
 
-    $id = $suggestion->getParameter('civicrm_value_maf_partners_non_avtale_id');
+    $id = $suggestion->getParameter('civicrm_value_printed_giro_id');
     $contact_id = $suggestion->getParameter('contact_id');
 
     $contact = civicrm_api3('Contact', 'getsingle', array('id' => $contact_id));
-    $sql = "SELECT * FROM `civicrm_value_maf_partners_non_avtale` WHERE id = %1";
+    $sql = "SELECT * FROM `civicrm_value_printed_giro` WHERE id = %1";
     $sqlParams[1] = array($id, 'Integer');
     $dao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
     $dao->fetch();
 
     // assign to smarty and compile HTML
     $smarty_vars['contact'] = $contact;
-    $smarty_vars['amount'] = $dao->maf_partners_amount;
-    $smarty_vars['frequency'] = $frequencies[$dao->maf_partners_frequency];
+    $smarty_vars['amount'] = $dao->maf_printed_giro_amount;
+    $smarty_vars['frequency'] = $frequencies[$dao->maf_printed_giro_frequency];
     $smarty_vars['wants_notification'] = $suggestion->getParameter('wants_notification');
 
-    if ($dao->maf_partners_campaign) {
-      $smarty_vars['campaign'] = civicrm_api3('Campaign', 'getvalue', array('return' => 'title', 'id' => $dao->maf_partners_campaign));
+    if ($dao->maf_printed_giro_campaign) {
+      $smarty_vars['campaign'] = civicrm_api3('Campaign', 'getvalue', array('return' => 'title', 'id' => $dao->maf_printed_giro_campaign));
     }
     $smarty_vars['penalties'] = $suggestion->getEvidence();
 
