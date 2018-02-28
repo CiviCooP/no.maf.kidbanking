@@ -8,7 +8,6 @@ require_once 'kidbanking.civix.php';
  * The KID should consist of:
  *   pos 1-7 - 7 digits for contact ID (allowing a maximum of 10 million donors), left padded with zeros
  *   pos 8-13 - 6 digits for campaign ID (allowing a maximum of 1 million campaigns), left padded with zeros
- *   post 14-21 - 8 digits for contribution ID (allowing a maximum of 100 million contributions, left padded with zeros. This part of the KID will only be used for AvtaleGiro collections where MAF Norge collects the money from the bank (OCR export)
  *   final digit is a control digit. Calculated through the Modulo 10 algorithm
  *
  * @see https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_and_AvtaleGiro_background#KID-generation
@@ -17,17 +16,12 @@ require_once 'kidbanking.civix.php';
  *   Required
  * @param $campaign_id
  *   Required
- * @param bool $contribution_id
- *   Optional
  * @return string
  *   The generated KidNumber
  */
-function kidbanking_generate_kidnumber($contact_id, $campaign_id, $contribution_id=false) {
+function kidbanking_generate_kidnumber($contact_id, $campaign_id) {
   $kidNumber = str_pad($contact_id, 7, '0', STR_PAD_LEFT);
   $kidNumber = $kidNumber . str_pad($campaign_id, 6, '0', STR_PAD_LEFT);
-  if (!empty($contribution_id)) {
-    $kidNumber = $kidNumber . str_pad($contribution_id, 8, '0', STR_PAD_LEFT);
-  }
   $kidNumber = $kidNumber . kidbanking_generate_checksum_digit($kidNumber);
 
   kidbanking_store_kid($kidNumber, $contact_id);

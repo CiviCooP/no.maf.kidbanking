@@ -46,7 +46,6 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
       $kidData = civicrm_api3('kid', 'parse', array('kid' => $kid));
       $contact_id = $kidData['contact_id'];
       $campaign_id = $kidData['campaign_id'];
-      $contribution_id = $kidData['contribution_id'];
       $contact = civicrm_api3('Contact', 'getsingle', array('is_deleted' => 0, 'id' => $contact_id));
     } catch (Exception $e) {
       return NULL;
@@ -114,9 +113,6 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     }
 
     $suggestion->setParameter('contribution_id', $result['id']);
-
-    // save the account
-    $this->storeAccountWithContact($btx, $suggestion->getParameter('contact_id'));
 
     $newStatus = banking_helper_optionvalueid_by_groupname_and_name('civicrm_banking.bank_tx_status', 'Processed');
     $btx->setStatus($newStatus);

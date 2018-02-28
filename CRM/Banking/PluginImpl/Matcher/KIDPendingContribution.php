@@ -13,10 +13,13 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
     if (!isset($config->threshold))                     $config->threshold = 0.40;
     if (!isset($config->update_contribution_status))    $config->update_contribution_status = 'Completed';
     if (!isset($config->recurring_contribution_status)) $config->contribution_status = array('Pending', 'In Progress');
+		if (!isset($config->non_recurring_penalty))         $config->non_recurring_penalty = 0.15;
     if (!isset($config->amount_penalty))                $config->amount_penalty = 0.15;
     if (!isset($config->currency_penalty))              $config->currency_penalty = 0.15;
     if (!isset($config->campaign_penalty))              $config->campaign_penalty = 0.15;
-    if (!isset($config->contribution_id_penalty))       $config->contribution_id_penalty = 0.15;
+		if (!isset($config->transactionTypeField))					$config->transactionTypeField = 'transactionType';
+		if (!isset($config->transactionTypeValue))					$config->transactionTypeValue = array(15);
+		if (!isset($config->transactionTypePenalty))        $config->transactionTypePenalty = 0.15;
 
     // date check / date range
     if (!isset($config->received_date_check))           $config->received_date_check = "1";  // WARNING: DISABLING THIS COULD MAKE THE PROCESS VERY SLOW
@@ -44,7 +47,6 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
       $kidData = civicrm_api3('kid', 'parse', array('kid' => $kid));
       $contact_id = $kidData['contact_id'];
       $campaign_id = $kidData['campaign_id'];
-      $contribution_id = $kidData['contribution_id'];
       $contact = civicrm_api3('Contact', 'getsingle', array('is_deleted' => 0, 'id' => $contact_id));
     } catch (Exception $e) {
       return NULL;
@@ -67,17 +69,33 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
     $pending_contributions = civicrm_api3('Contribution', 'get', $query);
     foreach ($pending_contributions['values'] as $key => $contribution) {
       $probability = 1.0;
-      // When contribution id is present in the KID number lower the probablity of this guess.
-      if ($contribution_id && $this->_plugin_config->contribution_id_penalty) {
-        $probability = $probability - $this->_plugin_config->contribution_id_penalty;
-      }
       $contribution_id = $contribution['id'];
 
       $suggestion = new CRM_Banking_Matcher_Suggestion($this, $btx);
       $suggestion->setId("kid_contribution-$contribution_id");
       $suggestion->setParameter('contribution_id', $contribution_id);
       $suggestion->setParameter('contact_id', $contribution['contact_id']);
-      $suggestion->setTitle(ts('Update contribution status of existing contribution'));
+			if ($contribution['contribution_recur_id']) {
+      	$suggestion->setTitle(ts('Update contribution status of existing recurring contribution'));
+			} else {
+				$suggestion->setTitle(ts('Update contribution status of existing contribution'));
+			}
+			
+			if ($contribution['contribution_recur_id']) {
+				$transactionTypeField = $this->_plugin_config->transactionTypeField;
+				if (!isset($data[$transactionTypeField]) || !in_array($data[$transactionTypeField], $this->_plugin_config->transactionTypeValue)) {
+					$suggestion->addEvidence($this->_plugin_config->transactionTypePenalty, ts("The transaction type is not valid for a recurring contribution. Transaction type should be one of %1", array('1'=>implode(',', $this->_plugin_config->transactionTypeValue))));
+        	$probability = $probability - $this->_plugin_config->transactionTypePenalty;
+				}
+			} else {
+				$suggestion->addEvidence($this->_plugin_config->non_recurring_penalty, ts('It is not a recurring contribution'));
+				$probability = $probability - $this->_plugin_config->non_recurring_penalty;
+				$transactionTypeField = $this->_plugin_config->transactionTypeField;
+				if (isset($data[$transactionTypeField]) && in_array($data[$transactionTypeField], $this->_plugin_config->transactionTypeValue)) {
+					$suggestion->addEvidence($this->_plugin_config->transactionTypePenalty, ts("The transaction type is for a recurring contribution. Transaction type should be one of %1", array('1'=>implode(',', $this->_plugin_config->transactionTypeValue))));
+        	$probability = $probability - $this->_plugin_config->transactionTypePenalty;
+				}
+			}
 
       if ($btx->amount != $contribution['total_amount']) {
         $suggestion->addEvidence($this->_plugin_config->amount_penalty, ts("The amount of the transaction differs from the expected amount."));
@@ -142,9 +160,6 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
       CRM_Core_Session::setStatus(ts("Couldn't modify contribution.") . "<br/>" . $result['error_message'], ts('Error'), 'error');
       return;
     }
-
-    // save the account
-    $this->storeAccountWithContact($btx, $suggestion->getParameter('contact_id'));
 
     $newStatus = banking_helper_optionvalueid_by_groupname_and_name('civicrm_banking.bank_tx_status', 'Processed');
     $btx->setStatus($newStatus);

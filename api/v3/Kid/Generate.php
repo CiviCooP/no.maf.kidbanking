@@ -13,8 +13,6 @@ function _civicrm_api3_kid_Generate_spec(&$spec) {
   $spec['contact_id']['type'] = 'Integer';
   $spec['campaign_id']['api.required'] = 1;
   $spec['campaign_id']['type'] = 'Integer';
-  $spec['contribution_id']['type'] = 'Integer';
-  $spec['contribution_id']['api.required'] = 0;
 }
 
 /**
@@ -29,11 +27,7 @@ function _civicrm_api3_kid_Generate_spec(&$spec) {
 function civicrm_api3_kid_Generate($params) {
   $contact_id = $params['contact_id'];
   $campaign_id = $params['campaign_id'];
-  $contribution_id = false;
-  if (!empty($params['contribution_id'])) {
-    $contribution_id = $params['contribution_id'];
-  }
-  $kid_number = kidbanking_generate_kidnumber($contact_id, $campaign_id, $contribution_id);
+  $kid_number = kidbanking_generate_kidnumber($contact_id, $campaign_id);
   $entity['kid_number'] = $kid_number;
   return $entity;
 }

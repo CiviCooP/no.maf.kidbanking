@@ -31,7 +31,11 @@
     <p>
         {capture assign=address_text}{if $contact.city}{$contact.street_address}, {$contact.city}{else}{ts}Address incomplete{/ts}{/if}{/capture}
         {capture assign=contact_link}<a title="{$address_text}" href="{crmURL p="civicrm/contact/view" q="reset=1&cid=$contact_id"}">{$contact.display_name} [{$contact.id}]</a>{/capture}
-        {ts 1=$contact_link}%1 maintains a matching recurring contribution.{/ts}
+        {if $recurring_contribution}
+        	{ts 1=$contact_link}%1 maintains a matching recurring contribution.{/ts}
+      	{else}
+      		{ts 1=$contact_link}%1 has a pending contribution.{/ts}
+      	{/if}
         {ts 1=$update_contribution_status}If you confirm this suggestion the existing contribution status will be updated to %1.{/ts}
     </p>
 </div>
@@ -46,14 +50,18 @@
             <td>
                 <div class="suggestion-value popup"><a href="{crmURL p="civicrm/contact/view/contribution" q="reset=1&id=$contribution_id&cid=$contact_id&action=view"}">[{$contribution_id}]</a></div>
             </td>
-        <tr></tr>
+        </tr>
+        {if $recurring_contribution}
+        <tr>
             <td>
                 <div class="suggestion-header">{ts}Contribution Recur ID{/ts}</div>
             </td>
             <td>
                 <div class="suggestion-header">{if ($recurring_contribution_id)}<a href="{crmURL p="civicrm/contact/view/contributionrecur" q="reset=1&id=$recurring_contribution_id&cid=$contact_id"}">[{$recurring_contribution_id}]</a>{/if} {if ($frequency_words)}{$frequency_words}{/if}</div>
             </td>
-        </tr><tr>
+        </tr>
+        {/if}
+        <tr>
             <td>
                 <div class="suggestion-header">{ts}Amount{/ts}</div>
             </td>

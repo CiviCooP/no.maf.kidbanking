@@ -6,7 +6,6 @@ The KID should consist of:
 
 * pos 1-7 - 7 digits for contact ID (allowing a maximum of 10 million donors), left padded with zeros
 * pos 8-13 - 6 digits for campaign ID (allowing a maximum of 1 million campaigns), left padded with zeros
-* post 14-21 - 8 digits for contribution ID (allowing a maximum of 100 million contributions, left padded with zeros. This part of the KID will only be used for AvtaleGiro collections where MAF Norge collects the money from the bank (OCR export)
 * final digit is a control digit (calculation to be specified)
 
 See https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_and_AvtaleGiro_background for more information.
@@ -34,7 +33,6 @@ After generation the KID will be stored in the _identitytracker extension_.
 |-----------------------|-----------|---------------|
 | contact_id            | integer   | Required      |
 | campaign_id           | integer   | Required      |
-| contribution_id       | integer   | not required  |
 
 **Return value**
 
@@ -64,7 +62,6 @@ When an invalid KID number is given the api will return an error.
 |-----------------------|-----------|----------------|
 | contact_id            | integer   | Always present |
 | campaign_id           | integer   | Optional       |
-| contribution_id       | integer   | Optional       |
 
 **Example code**
 
@@ -72,7 +69,6 @@ When an invalid KID number is given the api will return an error.
     // return values are:
     // $return['contact_id'] = 34341;
     // $return['campaign_id'] = 23;
-    // $return['contrubution_recur_id'] = false;
     
 ## KID Matcher
 

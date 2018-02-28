@@ -34,7 +34,6 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
       $kidData = civicrm_api3('kid', 'parse', array('kid' => $kid));
       $contact_id = $kidData['contact_id'];
       $campaign_id = $kidData['campaign_id'];
-      $contribution_id = $kidData['contribution_id'];
       $contact = civicrm_api3('Contact', 'getsingle', array(
         'is_deleted' => 0,
         'id' => $contact_id
@@ -113,9 +112,6 @@ class CRM_Banking_PluginImpl_Matcher_StopAvtale extends CRM_Banking_PluginImpl_M
       'id' => $contribution_recur_id,
       'currency'=> $contribution_recur['currency'],
     ));
-
-    // save the account
-    $this->storeAccountWithContact($btx, $match->getParameter('contact_id'));
 
     $newStatus = banking_helper_optionvalueid_by_groupname_and_name('civicrm_banking.bank_tx_status', 'Processed');
     $btx->setStatus($newStatus);

@@ -51,16 +51,6 @@ class api_v3_Kid_GenerateTest extends \PHPUnit_Framework_TestCase implements Hea
     $this->assertSame($result['kid_number'], '00343410000230');
   }
 
-  public function testKidGenerationForContactAndContribution() {
-    $params['contact_id'] = 1752;
-    $params['campaign_id'] = 104;
-    $params['contribution_id'] = 231974;
-    $params['version'] = 3;
-    $result = civicrm_api('Kid', 'Generate', $params);
-    $this->assertArrayHasKey('kid_number', $result);
-    $this->assertSame($result['kid_number'], '0001752000104002319742');
-  }
-
   public function testGenerationOfFailingKids() {
     // Should fail because campaign_id is not provided
     $params = array();

@@ -35,7 +35,6 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_
       $kidData = civicrm_api3('kid', 'parse', array('kid' => $kid));
       $contact_id = $kidData['contact_id'];
       $campaign_id = $kidData['campaign_id'];
-      $contribution_id = $kidData['contribution_id'];
       $contact = civicrm_api3('Contact', 'getsingle', array(
         'is_deleted' => 0,
         'id' => $contact_id
@@ -111,9 +110,6 @@ class CRM_Banking_PluginImpl_Matcher_StartAvtale extends CRM_Banking_PluginImpl_
     $contribution_recur_id = $match->getParameter('contribution_recur_id');
     $wants_notification = $match->getParameter('wants_notification');
     CRM_Kidbanking_Utils::updateNotificationFromBank($contribution_recur_id, $wants_notification);
-
-    // save the account
-    $this->storeAccountWithContact($btx, $match->getParameter('contact_id'));
 
     $newStatus = banking_helper_optionvalueid_by_groupname_and_name('civicrm_banking.bank_tx_status', 'Processed');
     $btx->setStatus($newStatus);
