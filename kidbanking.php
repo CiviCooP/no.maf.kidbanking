@@ -3,6 +3,49 @@
 require_once 'kidbanking.civix.php';
 
 /**
+ * Implements hook_civicrm_token
+ */
+function kidbanking_civicrm_tokens(&$tokens) {
+	$campaigns = civicrm_api3('Campaign', 'get', array('is_active' => 1, 'option' => array('limit' => 0)));
+	foreach($campaigns['values'] as $campaign) {
+		$tokens['kid']['kid.campaign_'.$campaign['name']] = ts('KID for campaign %1', array(1=>$campaign['title']));
+	}
+}
+
+/**
+ * implementation of hook_civicrm_tokenValues
+ * 
+ * This function deletegates the tokens to the desired functions
+ * 
+ * @param type $values
+ * @param type $cids
+ * @param type $job
+ * @param type $tokens
+ * @param type $context
+ */
+function kidbanking_civicrm_tokenValues(&$values, $cids, $job = null, $tokens = array(), $context = null) {
+	 if (!empty($tokens['kid'])) {
+		foreach($tokens['kid'] as $token_key => $token_name) {
+			if (!empty($token_key)) {
+				$token_name = $token_key;
+			}
+			
+			if (strpos($token_name, 'campaign_')===0) {
+				$campaign_name = str_replace('campaign_', '', $token_name);
+				try {
+					$campaign_id = civicrm_api3('Campaign', 'getvalue', array('return' => 'id', 'name' => $campaign_name)); 
+					foreach($cids as $contact_id) {
+						$values[$contact_id]['kid.'.$token_name] = kidbanking_generate_kidnumber($contact_id, $campaign_id); 
+					}
+				} catch (Exception $e) {
+					// Do nothing.
+				}
+			}
+		}
+	}
+}
+
+/**
  * Generate a KID number based on the contact_id, campaign_id and optionally the contribution_id.
  *
  * The KID should consist of:
