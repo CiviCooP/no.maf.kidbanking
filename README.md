@@ -12,7 +12,6 @@ See https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_an
 
 ## Provided matchers for CiviBanking
 
-* **Find pending contribution with KID as contribution_id** This matcher will try to lookup a pending contribution based on the contribution_id given in the KID. If one is found and amount, currency, campaign and date are matched the transaction will process automatically. The contribution status is updated to completed.
 * **Find any pending contribution** This matcher will lookup all pending contributions for a contact. The contact is derived from the KID. The contribution status is updated to completed.
 * **Create a contribution** Create a new contribution for a contact. The contact is derived from the KID.
 
@@ -72,7 +71,7 @@ When an invalid KID number is given the api will return an error.
     
 ## KID Matcher
 
-The KID matcher looks for pending contributions based on the KID number (which holds the contribution_id, see above). 
+The KID matcher looks for pending contributions based on the KID number. 
 When a pending contribution is found the contribution status is updated to completed.
 
 The matcher will also check for the following criteria and if not matched it will lower the probability of the matching:
@@ -83,6 +82,7 @@ The matcher will also check for the following criteria and if not matched it wil
 * Whether the contribution is on the same date as the date in the transaction file
 * Whether the contribution is linked to the same campaign as the campaign id in the transaction
 * Whether the campaign and the contact could be found based on the kid number
+* Whether the transaction type (15) matches with a recurring contribution
 
 ### How to set automatic matching and update?
 
