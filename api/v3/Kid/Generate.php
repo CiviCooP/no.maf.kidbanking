@@ -27,7 +27,11 @@ function _civicrm_api3_kid_Generate_spec(&$spec) {
 function civicrm_api3_kid_Generate($params) {
   $contact_id = $params['contact_id'];
   $campaign_id = $params['campaign_id'];
-  $kid_number = kidbanking_generate_kidnumber($contact_id, $campaign_id);
+	$store = true;
+	if (isset($params['store'])) {
+		$store = $params['store'] ? true : false;
+	}
+  $kid_number = kidbanking_generate_kidnumber($contact_id, $campaign_id, $store);
   $entity['kid_number'] = $kid_number;
   return $entity;
 }

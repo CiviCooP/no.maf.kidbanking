@@ -59,15 +59,19 @@ function kidbanking_civicrm_tokenValues(&$values, $cids, $job = null, $tokens = 
  *   Required
  * @param $campaign_id
  *   Required
+ * @param $store
+ *   Whether we want to save the generaed KID number at the contact card.
  * @return string
  *   The generated KidNumber
  */
-function kidbanking_generate_kidnumber($contact_id, $campaign_id) {
+function kidbanking_generate_kidnumber($contact_id, $campaign_id, $store = true) {
   $kidNumber = str_pad($contact_id, 7, '0', STR_PAD_LEFT);
   $kidNumber = $kidNumber . str_pad($campaign_id, 6, '0', STR_PAD_LEFT);
   $kidNumber = $kidNumber . kidbanking_generate_checksum_digit($kidNumber);
 
-  kidbanking_store_kid($kidNumber, $contact_id);
+	if ($store) {
+  	kidbanking_store_kid($kidNumber, $contact_id);
+	}
 
   return $kidNumber;
 }
