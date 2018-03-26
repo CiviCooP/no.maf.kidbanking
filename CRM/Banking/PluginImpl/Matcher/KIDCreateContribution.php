@@ -48,7 +48,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
       $campaign_id = $kidData['campaign_id'];
       $contact = civicrm_api3('Contact', 'getsingle', array('is_deleted' => 0, 'id' => $contact_id));
     } catch (Exception $e) {
-      return NULL;
+      // Do nothing.
     }
     if ($btx->amount == 0.00) {
       return NULL;
@@ -137,6 +137,9 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     if (isset($parameters['kid_create_contribution_payment_instrument_id'])) {
       $match->setParameter('payment_instrument_id', $parameters['kid_create_contribution_payment_instrument_id']);
     }
+		if (isset($parameters['lookup_contact_id'])) {
+      $match->setParameter('contact_id', $parameters['lookup_contact_id']);
+    }
   }
 
   /**
@@ -149,9 +152,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
   function visualize_match( CRM_Banking_Matcher_Suggestion $suggestion, $btx) {
     $smarty_vars = array();
 
-    $contact_id = $suggestion->getParameter('contact_id');
-    $contact = civicrm_api3('Contact', 'getsingle', array('id' => $contact_id));
-    $smarty_vars['contact'] = $contact;
+    $contact_id = $suggestion->getParameter('contact_id');		
 
     $smarty_vars['financial_types'] = array();
     $financial_types = civicrm_api3('FinancialType', 'get', array('options' => array('limit' => 0)));

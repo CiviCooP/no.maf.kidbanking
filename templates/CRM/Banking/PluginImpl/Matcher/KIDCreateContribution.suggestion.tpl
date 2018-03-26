@@ -1,13 +1,5 @@
 {assign var=contact_id value=$contact.id}
 <div>
-    <p>
-        {capture assign=address_text}{if $contact.city}{$contact.street_address}, {$contact.city}{else}{ts}Address incomplete{/ts}{/if}{/capture}
-        {capture assign=contact_link}<a title="{$address_text}" href="{crmURL p="civicrm/contact/view" q="reset=1&cid=$contact_id"}">{$contact.display_name} [{$contact.id}]</a>{/capture}
-        {ts 1=$contact_link}Create a new contribution for %1.{/ts}
-    </p>
-</div>
-
-<div>
     <table border="1">
         <tbody>
         <tr>
@@ -17,7 +9,18 @@
             <td>
                 <div class="suggestion-value">{$amount|crmMoney:$currency}</div>
             </td>
-        </tr><tr>
+        </tr>
+        <tr>
+          <td>
+          	<div class="suggestion-header">{ts}Donor{/ts}:</div>
+        	</td>
+        	<td>
+            <div class="suggestion-value">
+          		<input type="text" class="crm-form-entityref required" placeholder="{ts}- select contact -{/ts}" data-select-params="[]" data-api-params="{literal}{'extra':['email']}{/literal}" data-api-entity="contact" data-create-links="true" name="lookup_contact_id" id="lookup_contact_id" value="{if (!empty($contact_id))}{$contact_id}{/if}" />
+            </div>
+          </td>
+        </tr>
+        <tr>
             <td>
                 <div class="suggestion-header">{ts}Type{/ts}</div>
             </td>
