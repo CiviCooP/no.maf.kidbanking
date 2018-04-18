@@ -1,4 +1,3 @@
-{assign var=contact_id value=$contact.id}
 <div>
     <table border="1">
         <tbody>

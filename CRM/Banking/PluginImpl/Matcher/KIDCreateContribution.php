@@ -54,6 +54,22 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
       return NULL;
     }
 
+		if (empty($campaign_id)) {
+			// Try to find the campaign based on an active printed giro
+			// or an active avtale giro
+			$campaign_id = CRM_Core_DAO::singleValueQuery("SELECT maf_printed_giro_campaign FROM civicrm_value_printed_giro WHERE maf_printed_giro_amount = %1 and entity_id = %2 AND (maf_printed_giro_end_date IS NULL OR maf_printed_giro_end_date >= NOW())", array(
+				1 => array($btx->amount, 'Float'),
+				2 => array($contact_id, 'Integer'),
+			));
+			if (empty($campaign_id)) {
+				// Try to find campaign based on an active avtale giro	
+				$campaign_id = CRM_Core_DAO::singleValueQuery("SELECT campaign_id FROM civicrm_contribution_recur WHERE amount = %1 and contact_id = %2 AND (end_date IS NULL OR end_date >= NOW())", array(
+					1 => array($btx->amount, 'Float'),
+					2 => array($contact_id, 'Integer'),
+				));	
+			}
+		}
+
     $probability = 1.00;
     if ($this->_plugin_config->default_penalty) {
       $probability = $probability - $this->_plugin_config->default_penalty;
@@ -152,7 +168,8 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
   function visualize_match( CRM_Banking_Matcher_Suggestion $suggestion, $btx) {
     $smarty_vars = array();
 
-    $contact_id = $suggestion->getParameter('contact_id');		
+    $contact_id = $suggestion->getParameter('contact_id');
+		$smarty_vars['contact_id'] = $contact_id;		
 
     $smarty_vars['financial_types'] = array();
     $financial_types = civicrm_api3('FinancialType', 'get', array('options' => array('limit' => 0)));
