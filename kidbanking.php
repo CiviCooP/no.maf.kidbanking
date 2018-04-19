@@ -3,6 +3,30 @@
 require_once 'kidbanking.civix.php';
 
 /**
+ * Implements hook_civicrm_export().
+ *
+ *@link https://docs.civicrm.org/dev/en/master/hooks/hook_civicrm_export/
+ */
+function kidbanking_civicrm_export(&$exportTempTable, &$headerRows, &$sqlColumns, &$exportMode) {
+  $exporter = CRM_Kidbanking_ExportContactWithKid_Exporter::singleton();
+  $exporter->export($exportTempTable, $headerRows, $sqlColumns, $exportMode);
+}
+
+/**
+ * Implements hook_civicrm_searchTasks().
+ *
+ *@link https://docs.civicrm.org/dev/en/master/hooks/hook_civicrm_searchTasks/
+ */
+function kidbanking_civicrm_searchTasks($objectName, &$tasks) {
+  if ($objectName == 'contact') {
+    $tasks[] = array(
+      'title' => 'Export contacts with KID',
+      'class' => array('CRM_Kidbanking_ExportContactWithKid_Form_Select', 'CRM_Kidbanking_ExportContactWithKid_Form_Map'),
+    );
+  }
+}
+
+/**
  * Implements hook_civicrm_token
  */
 function kidbanking_civicrm_tokens(&$tokens) {

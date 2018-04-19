@@ -1,6 +1,7 @@
 # no.maf.kidbanking
 
 This extension provides functionality to generate KID numbers and to match CiviBanking transactions on the given KID number.
+It also provides export functionality of contacts with a KID number
 
 The KID should consist of:
 
