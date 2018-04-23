@@ -25,7 +25,7 @@ class CRM_Kidbanking_ExportContactWithKid_Form_Select extends CRM_Export_Form_Se
     asort($campaignSelectList);
     $this->add('select', 'campaign_id', ts('Campaign (for KID)'), $campaignSelectList, true, array('class' => 'crm-select2'));
     
-    $this->addFormRule(array('CRM_Generic_Export', 'validateCampaign'), $this);
+    $this->addFormRule(array('CRM_Kidbanking_ExportContactWithKid_Form_Select', 'validateCampaign'), $this);
   }
   
   public static function validateCampaign($fields, $files, $self) {
