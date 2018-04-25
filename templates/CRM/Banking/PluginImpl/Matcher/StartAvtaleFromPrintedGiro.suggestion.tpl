@@ -27,6 +27,15 @@
             </td>
         </tr><tr>
             <td>
+                <div class="suggestion-header">{ts}Cycle day{/ts}</div>
+            </td>
+            <td>
+                <div class="suggestion-value">
+                  <input name="cycle_day" value="{$cycle_day}" />
+                </div>
+            </td>
+        </tr><tr>
+            <td>
                 <div class="suggestion-header">{ts}Campaign{/ts}</div>
             </td>
             <td>
