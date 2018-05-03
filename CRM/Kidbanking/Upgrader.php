@@ -6,6 +6,7 @@
 class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
 
   public function install() {
+    $this->addMatcher('analyser_paymentinstrument', 'Analyse payment instrument based on transactionType', 'CRM_Banking_PluginImpl_Matcher_PaymentInstrumentAnalyser');
     $this->addMatcher('matcher_kid_pending_contribution', 'Find pending contributions with KID', 'CRM_Banking_PluginImpl_Matcher_KIDPendingContribution');
     $this->addMatcher('matcher_kid_create_contribution', 'Create contribution based on KID', 'CRM_Banking_PluginImpl_Matcher_KIDCreateContribution');
     $this->addMatcher('matcher_kid_startavtale_from_printedgiro', 'Start Avtale from printed giro', 'CRM_Banking_PluginImpl_Matcher_StartAvtaleFromPrintedGiro');
@@ -15,12 +16,18 @@ class CRM_Kidbanking_Upgrader extends CRM_Kidbanking_Upgrader_Base {
   }
 
   public function uninstall() {
+    $this->removeMatcher('analyser_paymentinstrument');
     $this->removeMatcher('matcher_kid_startavtale_from_printedgiro');
     $this->removeMatcher('matcher_kid_stopavtale');
     $this->removeMatcher('matcher_kid_startavtale');
     $this->removeMatcher('matcher_kid_changenotificationfrombank');
     $this->removeMatcher('matcher_kid_create_contribution');
     $this->removeMatcher('matcher_kid_pending_contribution');
+  }
+  
+  public function upgrade_1001($ctx) {
+    $this->addMatcher('analyser_paymentinstrument', 'Analyse payment instrument based on transactionType', 'CRM_Banking_PluginImpl_Matcher_PaymentInstrumentAnalyser');
+    return true;
   }
 
   private function addMatcher($name, $label, $class) {

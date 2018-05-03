@@ -25,6 +25,9 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     if (!isset($config->create_contribution_status)) {
       $config->create_contribution_status = 'Completed';
     }
+    if (!isset($config->payment_instrument_field)) {
+      $config->payment_instrument_field = 'payment_instrument_id';
+    }
   }
 
   /**
@@ -81,7 +84,11 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     $suggestion->setParameter('contact_id', $contact_id);
     $suggestion->setParameter('campaign_id', $campaign_id);
     $suggestion->setParameter('financial_type_id', $this->_plugin_config->default_financial_type_id);
-    $suggestion->setParameter('payment_instrument_id', $this->_plugin_config->default_payment_instrument_id);
+    $payment_instrument_id = $this->_plugin_config->default_payment_instrument_id;
+    if (isset($data[$this->_plugin_config->payment_instrument_field])) {
+      $payment_instrument_id = $data[$this->_plugin_config->payment_instrument_field];
+    }
+    $suggestion->setParameter('payment_instrument_id', $payment_instrument_id);
 
     $date = new DateTime($btx->value_date);
     $suggestion->setParameter('date', $date->format('Ymd His'));
