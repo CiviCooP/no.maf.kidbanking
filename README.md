@@ -13,6 +13,7 @@ See https://civicoop.plan.io/projects/maf-norge-civicrm-support-2016/wiki/KID_an
 
 ## Provided matchers for CiviBanking
 
+* **Analyse payment instrument** This analyser will add the payment instrument to the banking transaction based on the contents of the transactionType field.
 * **Find any pending contribution** This matcher will lookup all pending contributions for a contact. The contact is derived from the KID. The contribution status is updated to completed.
 * **Create a contribution** Create a new contribution for a contact. The contact is derived from the KID.
 
