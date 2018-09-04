@@ -22,10 +22,13 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
 		if (!isset($config->transactionTypePenalty))        $config->transactionTypePenalty = 0.15;
 
     // date check / date range
-    if (!isset($config->received_date_check))           $config->received_date_check = "1";  // WARNING: DISABLING THIS COULD MAKE THE PROCESS VERY SLOW
+    if (!isset($config->received_date_check))           $config->received_date_check = "1";
     if (!isset($config->acceptable_date_offset_from))   $config->acceptable_date_offset_from = "-1 days";
     if (!isset($config->acceptable_date_offset_to))     $config->acceptable_date_offset_to = "+1 days";
     if (!isset($config->date_penalty))                  $config->date_penalty = 0.15;
+
+    if (!isset($config->ignore_old_contributions))              $config->ignore_old_contributions = "1";
+    if (!isset($config->ignore_old_contributions_date_offset))  $config->ignore_old_contributions_date_offset = "-1 month";
   }
 
   /**
@@ -66,6 +69,12 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
       $query['id'] = array('NOT IN' => array($contribution_id));
     }
 
+    if ($this->_plugin_config->ignore_old_contributions) {
+      $ignoreDate = new DateTime($btx->value_date);
+      $ignoreDate->modify($this->_plugin_config->ignore_old_contributions_date_offset);
+      $query['receive_date'] = array('>=' => $ignoreDate->format('Ymd'));
+    }
+
     $pending_contributions = civicrm_api3('Contribution', 'get', $query);
     foreach ($pending_contributions['values'] as $key => $contribution) {
       $probability = 1.0;
@@ -91,7 +100,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
 				$suggestion->addEvidence($this->_plugin_config->non_recurring_penalty, ts('It is not a recurring contribution'));
 				$probability = $probability - $this->_plugin_config->non_recurring_penalty;
 				$transactionTypeField = $this->_plugin_config->transactionTypeField;
-				if (isset($data[$transactionTypeField]) && in_array($data[$transactionTypeField], $this->_plugin_config->transactionTypeValue)) {
+				if (isset($data[$transactionTypeField]) && !in_array($data[$transactionTypeField], $this->_plugin_config->transactionTypeValue)) {
 					$suggestion->addEvidence($this->_plugin_config->transactionTypePenalty, ts("The transaction type is for a recurring contribution. Transaction type should be one of %1", array('1'=>implode(',', $this->_plugin_config->transactionTypeValue))));
         	$probability = $probability - $this->_plugin_config->transactionTypePenalty;
 				}
@@ -114,12 +123,14 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
 
       if ($this->_plugin_config->received_date_check) {
         // use date only
-        $expected_date = strtotime(date('Y-m-d', strtotime($contribution['receive_date'])));
-        $transaction_date = strtotime(date('Y-m-d', strtotime($btx->value_date)));
+        $expected_date = new DateTime($contribution['receive_date']);
+        $min_expected_date = clone $expected_date;
+        $min_expected_date->modify($this->_plugin_configacceptable_date_offset_from);
+        $max_expected_date = clone $expected_date;
+        $max_expected_date->modify($this->_plugin_configacceptable_date_offset_to);
+        $transaction_date = new DateTime($btx->value_date);
 
-        // only apply penalties, if the offset is outside the accepted range
-        $date_offset = $transaction_date - $expected_date;
-        if ( $date_offset < strtotime($this->_plugin_config->acceptable_date_offset_from, 0)  || $date_offset > strtotime($this->_plugin_config->acceptable_date_offset_to, 0)) {
+        if ($transaction_date < $min_expected_date || $transaction_date > $max_expected_date ) {
           if ($this->_plugin_config->date_penalty) {
             $suggestion->addEvidence($this->_plugin_config->date_penalty, ts("The date of the transaction deviates too much from the expected date."));
             $probability = $probability - $this->_plugin_config->date_penalty;

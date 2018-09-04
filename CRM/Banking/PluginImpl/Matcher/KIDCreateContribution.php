@@ -28,6 +28,12 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     if (!isset($config->payment_instrument_field)) {
       $config->payment_instrument_field = 'payment_instrument_id';
     }
+
+    if (!isset($config->transactionTypeField))					$config->transactionTypeField = 'transactionType';
+    if (!isset($config->transactionTypeValue))					$config->transactionTypeValue = array(10, 13);
+    if (!isset($config->transactionTypePenalty))        $config->transactionTypePenalty = 0.15;
+    if (!isset($config->noCampaignPenalty))             $config->noCampaignPenalty = 0.15;
+    if (!isset($config->noContactPenalty))              $config->noContactPenalty = 0.15;
   }
 
   /**
@@ -39,6 +45,11 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     $data = $btx->getDataParsed();
     $threshold = $this->getThreshold();
     $penalty = $this->getPenalty($btx);
+
+    $probability = 1.00;
+    if ($this->_plugin_config->default_penalty) {
+      $probability = $probability - $this->_plugin_config->default_penalty;
+    }
 
     if (empty($data['kid'])) {
       return NULL;
@@ -57,6 +68,18 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
       return NULL;
     }
 
+    if (empty($contact_id)) {
+      $probability = $probability - $this->_plugin_config->noContactPenalty;
+    }
+
+    if (!empty($campaign_id)) {
+      try {
+        $campaign = civicrm_api3('Campaign', 'getsingle', array('id' => $campaign_id));
+      } catch (Exception $e) {
+        $campaign_id = null;
+      }
+    }
+
 		if (empty($campaign_id)) {
 			// Try to find the campaign based on an active printed giro
 			// or an active avtale giro
@@ -73,12 +96,11 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
 			}
 		}
 
-    $probability = 1.00;
-    if ($this->_plugin_config->default_penalty) {
-      $probability = $probability - $this->_plugin_config->default_penalty;
+    if (empty($campaign_id)) {
+      $probability = $probability - $this->_plugin_config->noCampaignPenalty;
     }
+
     $suggestion = new CRM_Banking_Matcher_Suggestion($this, $btx);
-    $suggestion->setProbability($probability);
     $suggestion->setId('kid-'.$kid);
     $suggestion->setTitle('Create new contribution');
     $suggestion->setParameter('contact_id', $contact_id);
@@ -95,6 +117,13 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     $suggestion->setParameter('amount', $btx->amount);
     $suggestion->setParameter('currency', $btx->currency);
 
+    $transactionTypeField = $this->_plugin_config->transactionTypeField;
+    if (isset($data[$transactionTypeField]) && !in_array($data[$transactionTypeField], $this->_plugin_config->transactionTypeValue)) {
+      $suggestion->addEvidence($this->_plugin_config->transactionTypePenalty, ts("The transaction type is not valid. Transaction type should be one of %1", array('1'=>implode(',', $this->_plugin_config->transactionTypeValue))));
+      $probability = $probability - $this->_plugin_config->transactionTypePenalty;
+    }
+
+    $suggestion->setProbability($probability);
     if ($suggestion->getProbability() >= $threshold) {
       if ($penalty) {
         $suggestion->addEvidence($penalty, ts("A general penalty was applied."));
@@ -129,6 +158,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
     if ($suggestion->getParameter('campaign_id')) {
       $params['campaign_id'] = $suggestion->getParameter('campaign_id');
     }
+    
     $result = civicrm_api('Contribution', 'create', $params);
     if (isset($result['is_error']) && $result['is_error']) {
       CRM_Core_Session::setStatus(ts("Couldn't modify contribution.") . "<br/>" . $result['error_message'], ts('Error'), 'error');
