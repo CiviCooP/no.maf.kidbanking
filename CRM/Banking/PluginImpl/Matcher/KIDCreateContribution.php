@@ -80,7 +80,7 @@ class CRM_Banking_PluginImpl_Matcher_KIDCreateContribution extends CRM_Banking_P
       }
     }
 
-		if (empty($campaign_id)) {
+		if (empty($campaign_id) && $contact_id) {
 			// Try to find the campaign based on an active printed giro
 			// or an active avtale giro
 			$campaign_id = CRM_Core_DAO::singleValueQuery("SELECT maf_printed_giro_campaign FROM civicrm_value_printed_giro WHERE maf_printed_giro_amount = %1 and entity_id = %2 AND (maf_printed_giro_end_date IS NULL OR maf_printed_giro_end_date >= NOW())", array(
