@@ -90,3 +90,14 @@
         </ul>
     </div>
 {/if}
+
+{literal}
+<script language="JavaScript">
+cj(function($){
+  $('#lookup_contact_id').on('change', function(e) {
+    e.stopPropagation();
+    $('tr.suggestion:first').trigger('click');
+  });
+});
+</script>
+{/literal}
