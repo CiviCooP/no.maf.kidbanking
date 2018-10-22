@@ -125,9 +125,9 @@ class CRM_Banking_PluginImpl_Matcher_KIDPendingContribution extends CRM_Banking_
         // use date only
         $expected_date = new DateTime($contribution['receive_date']);
         $min_expected_date = clone $expected_date;
-        $min_expected_date->modify($this->_plugin_configacceptable_date_offset_from);
+        $min_expected_date->modify($this->_plugin_config->acceptable_date_offset_from);
         $max_expected_date = clone $expected_date;
-        $max_expected_date->modify($this->_plugin_configacceptable_date_offset_to);
+        $max_expected_date->modify($this->_plugin_config->acceptable_date_offset_to);
         $transaction_date = new DateTime($btx->value_date);
 
         if ($transaction_date < $min_expected_date || $transaction_date > $max_expected_date ) {
